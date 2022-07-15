@@ -19,7 +19,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <compilerArgs>
-                        <arg>-add-exports</arg>
+                        <arg>--add-exports</arg>
                         <arg>jdk.jdi/com.sun.tools.jdi=ALL-UNNAMED</arg>
                     </compilerArgs>
                 </configuration>
