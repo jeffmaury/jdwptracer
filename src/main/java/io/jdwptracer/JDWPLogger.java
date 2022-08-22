@@ -195,7 +195,7 @@ public class JDWPLogger implements Closeable {
                             break;
                         case JDWP.EventKind.CLASS_PREPARE:
                             consumer.accept("requestID=" + pkt.readInt() + " thread=" + pkt.readObjectRef() +
-                                    " refTypeTag=" + pkt.readByte() + " typeID=" + pkt.readClassRef() +
+                                    " refTypeTag=" + typeTagToString(pkt.readByte()) + " typeID=" + pkt.readClassRef() +
                                     " signature=" + pkt.readString() + " status=" + pkt.readInt());
                             break;
                         case JDWP.EventKind.CLASS_UNLOAD:
@@ -203,13 +203,15 @@ public class JDWPLogger implements Closeable {
                             break;
                         case JDWP.EventKind.FIELD_ACCESS:
                             consumer.accept("requestID=" + pkt.readInt() + " thread=" + pkt.readObjectRef() +
-                                    " location=" + locationToString(pkt) + " refTypeTag=" + pkt.readByte() +
+                                    " location=" + locationToString(pkt) +
+                                    " refTypeTag=" + typeTagToString(pkt.readByte()) +
                                     " typeID=" + pkt.readClassRef() + " fieldID+" + pkt.readFieldRef() +
                                     " object=" + pkt.readByte() + pkt.readObjectRef());
                             break;
                         case JDWP.EventKind.FIELD_MODIFICATION:
                             consumer.accept("requestID=" + pkt.readInt() + " thread=" + pkt.readObjectRef() +
-                                    " location=" + locationToString(pkt) + " refTypeTag=" + pkt.readByte() +
+                                    " location=" + locationToString(pkt) +
+                                    " refTypeTag=" + typeTagToString(pkt.readByte()) +
                                     " typeID=" + pkt.readClassRef() + " fieldID+" + pkt.readFieldRef() +
                                     " object=" + pkt.readByte() + pkt.readObjectRef() + " valueToBe=" + valueToString(pkt));
                             break;
@@ -256,7 +258,7 @@ public class JDWPLogger implements Closeable {
             if (pkt.flags == Packet.NoFlags) {
                 consumer.accept("classObject=" + pkt.readObjectRef());
             } else {
-                consumer.accept("refTypeTag=" + pkt.readByte() + " typeID=" + pkt.readClassRef());
+                consumer.accept("refTypeTag=" + typeTagToString(pkt.readByte()) + " typeID=" + pkt.readClassRef());
             }
         }
     }
@@ -467,7 +469,7 @@ public class JDWPLogger implements Closeable {
             } else {
                 int classes = pkt.readInt();
                 for(int i=0; i < classes;++i) {
-                    consumer.accept("refTypeTag=" + pkt.readByte() + " typeID=" + pkt.readObjectRef());
+                    consumer.accept("refTypeTag=" + typeTagToString(pkt.readByte()) + " typeID=" + pkt.readObjectRef());
                 }
             }
         }
@@ -609,6 +611,18 @@ public class JDWPLogger implements Closeable {
         return sb.toString();
     }
 
+    private static String typeTagToString(byte val) {
+        if (val == JDWP.TypeTag.CLASS) {
+            return "class";
+        } else if (val == JDWP.TypeTag.INTERFACE) {
+            return "interface";
+        } else if (val == JDWP.TypeTag.ARRAY) {
+            return "array";
+        }
+        return "invalid "
+
+    }
+
     private void dumpStringReference(Packet pkt) {
         if (pkt.cmd == JDWPStringReference.StringReference.Value.COMMAND) {
             if (pkt.flags == Packet.NoFlags) {
@@ -624,7 +638,7 @@ public class JDWPLogger implements Closeable {
             if (pkt.flags == Packet.NoFlags) {
                 consumer.accept("object=" + pkt.readObjectRef());
             } else {
-                consumer.accept("refTypeTag=" + pkt.readByte() + " typeID=" + pkt.readClassRef());
+                consumer.accept("refTypeTag=" + typeTagToString(pkt.readByte()) + " typeID=" + pkt.readClassRef());
             }
         } else if (pkt.cmd == JDWPObjectReference.ObjectReference.GetValues.COMMAND) {
             if (pkt.flags == Packet.NoFlags) {
@@ -866,7 +880,7 @@ public class JDWPLogger implements Closeable {
             } else {
                 int classes = pkt.readInt();
                 for(int i=0; i < classes;++i) {
-                    consumer.accept("refTypeTag=" + pkt.readByte() + " typeID=" + pkt.readClassRef());
+                    consumer.accept("refTypeTag=" + typeTagToString(pkt.readByte()) + " typeID=" + pkt.readClassRef());
                 }
             }
         } else if (pkt.cmd == JDWPReferenceType.ReferenceType.Status.COMMAND) {
@@ -1025,7 +1039,7 @@ public class JDWPLogger implements Closeable {
             if (pkt.flags == Packet.Reply) {
                 int classes = pkt.readInt();
                 for(int i=0; i < classes;++i) {
-                    consumer.accept("refTypeTag=" + pkt.readByte() + " typeID=" + pkt.readClassRef() + " status=" + pkt.readInt());
+                    consumer.accept("refTypeTag=" + typeTagToString(pkt.readByte()) + " typeID=" + pkt.readClassRef() + " status=" + pkt.readInt());
                 }
             } else {
                 consumer.accept("signature=" + pkt.readString());
@@ -1033,7 +1047,7 @@ public class JDWPLogger implements Closeable {
         } else if (pkt.cmd == JDWPVirtualMachine.VirtualMachine.AllClasses.COMMAND && pkt.flags == Packet.Reply) {
             int classes = pkt.readInt();
             for(int i=0; i < classes;++i) {
-                consumer.accept("refTypeTag=" + pkt.readByte() + " typeID=" + pkt.readClassRef() + " signature=" + pkt.readString() + " status=" + pkt.readInt());
+                consumer.accept("refTypeTag=" + typeTagToString(pkt.readByte()) + " typeID=" + pkt.readClassRef() + " signature=" + pkt.readString() + " status=" + pkt.readInt());
             }
         } else if (pkt.cmd == JDWPVirtualMachine.VirtualMachine.AllThreads.COMMAND && pkt.flags == Packet.Reply) {
             int threads = pkt.readInt();
@@ -1099,7 +1113,7 @@ public class JDWPLogger implements Closeable {
         } else if (pkt.cmd == JDWPVirtualMachine.VirtualMachine.AllClassesWithGeneric.COMMAND && pkt.flags == Packet.Reply) {
             int classes = pkt.readInt();
             for(int i=0; i < classes;++i) {
-                consumer.accept("refTypeTag=" + pkt.readByte() + " typeID=" + pkt.readClassRef() +
+                consumer.accept("refTypeTag=" + typeTagToString(pkt.readByte()) + " typeID=" + pkt.readClassRef() +
                         " signature=" + pkt.readString() + " genericSignature=" + pkt.readString() +
                         " status=" + pkt.readInt());
             }
