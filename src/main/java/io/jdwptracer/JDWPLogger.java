@@ -196,7 +196,7 @@ public class JDWPLogger implements Closeable {
                         case JDWP.EventKind.CLASS_PREPARE:
                             consumer.accept("requestID=" + pkt.readInt() + " thread=" + pkt.readObjectRef() +
                                     " refTypeTag=" + typeTagToString(pkt.readByte()) + " typeID=" + pkt.readClassRef() +
-                                    " signature=" + pkt.readString() + " status=" + pkt.readInt());
+                                    " signature=" + pkt.readString() + " status=" + statusToString(pkt.readInt()));
                             break;
                         case JDWP.EventKind.CLASS_UNLOAD:
                             consumer.accept("requestID=" + pkt.readInt() + " signature=" + pkt.readString());
@@ -623,6 +623,23 @@ public class JDWPLogger implements Closeable {
 
     }
 
+    private static String statusToString(int status) {
+        StringBuilder builder = new StringBuilder();
+        int[] values = new int[] {JDWP.ClassStatus.VERIFIED, JDWP.ClassStatus.PREPARED, JDWP.ClassStatus.INITIALIZED, JDWP.ClassStatus.ERROR};
+        String[] labels = new String[] {"verified", "prepared", "initialized", "error"};
+        boolean first = true;
+        for(int i = 0; i < values.length;++i) {
+            if (!first) {
+                builder.append(',');
+            }
+            if ((status & values[i]) == values[i]) {
+                builder.append(labels[i]);
+                first = false;
+            }
+        }
+        return builder.toString();
+    }
+
     private void dumpStringReference(Packet pkt) {
         if (pkt.cmd == JDWPStringReference.StringReference.Value.COMMAND) {
             if (pkt.flags == Packet.NoFlags) {
@@ -887,7 +904,7 @@ public class JDWPLogger implements Closeable {
             if (pkt.flags == Packet.NoFlags) {
                 consumer.accept("refType=" + pkt.readClassRef());
             } else {
-                consumer.accept("status=" + pkt.readInt());
+                consumer.accept("status=" + statusToString(pkt.readInt()));
             }
         } else if (pkt.cmd == JDWPReferenceType.ReferenceType.Interfaces.COMMAND) {
             if (pkt.flags == Packet.NoFlags) {
@@ -1039,7 +1056,9 @@ public class JDWPLogger implements Closeable {
             if (pkt.flags == Packet.Reply) {
                 int classes = pkt.readInt();
                 for(int i=0; i < classes;++i) {
-                    consumer.accept("refTypeTag=" + typeTagToString(pkt.readByte()) + " typeID=" + pkt.readClassRef() + " status=" + pkt.readInt());
+                    consumer.accept("refTypeTag=" + typeTagToString(pkt.readByte()) +
+                            " typeID=" + pkt.readClassRef() +
+                            " status=" + statusToString(pkt.readInt()));
                 }
             } else {
                 consumer.accept("signature=" + pkt.readString());
@@ -1047,7 +1066,8 @@ public class JDWPLogger implements Closeable {
         } else if (pkt.cmd == JDWPVirtualMachine.VirtualMachine.AllClasses.COMMAND && pkt.flags == Packet.Reply) {
             int classes = pkt.readInt();
             for(int i=0; i < classes;++i) {
-                consumer.accept("refTypeTag=" + typeTagToString(pkt.readByte()) + " typeID=" + pkt.readClassRef() + " signature=" + pkt.readString() + " status=" + pkt.readInt());
+                consumer.accept("refTypeTag=" + typeTagToString(pkt.readByte()) + " typeID=" + pkt.readClassRef() +
+                        " signature=" + pkt.readString() + " status=" + statusToString(pkt.readInt()));
             }
         } else if (pkt.cmd == JDWPVirtualMachine.VirtualMachine.AllThreads.COMMAND && pkt.flags == Packet.Reply) {
             int threads = pkt.readInt();
@@ -1115,7 +1135,7 @@ public class JDWPLogger implements Closeable {
             for(int i=0; i < classes;++i) {
                 consumer.accept("refTypeTag=" + typeTagToString(pkt.readByte()) + " typeID=" + pkt.readClassRef() +
                         " signature=" + pkt.readString() + " genericSignature=" + pkt.readString() +
-                        " status=" + pkt.readInt());
+                        " status=" + statusToString(pkt.readInt()));
             }
         } else if (pkt.cmd == JDWPVirtualMachine.VirtualMachine.InstanceCounts.COMMAND) {
             if (pkt.flags == Packet.NoFlags) {
