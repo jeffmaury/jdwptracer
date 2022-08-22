@@ -619,7 +619,7 @@ public class JDWPLogger implements Closeable {
         } else if (val == JDWP.TypeTag.ARRAY) {
             return "array";
         }
-        return "invalid "
+        return "invalid type tag " + val;
 
     }
 
