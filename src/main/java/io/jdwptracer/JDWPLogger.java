@@ -2,6 +2,7 @@ package io.jdwptracer;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -89,8 +90,10 @@ public class JDWPLogger implements Closeable {
     private void dump(Packet pkt) {
         Map<Integer, Class> cmdSet = JDWP.COMMANDS.get(Integer.valueOf(pkt.cmdSet));
         Class command = cmdSet != null ? cmdSet.get(Integer.valueOf(pkt.cmd)) : null;
-        consumer.accept("JDWP Packet id=" + pkt.id + " cmdSet=" + (command != null ? command.getDeclaringClass().getSimpleName() : pkt.cmdSet) + " cmd=" +
-                (command != null ? command.getSimpleName() : pkt.cmd) + " flags=" + pkt.flags + " errorCode=" + pkt.errorCode);
+        consumer.accept("JDWP Packet id=" + pkt.id +
+                " cmdSet=" + (command != null ? command.getDeclaringClass().getSimpleName() : pkt.cmdSet) +
+                " cmd=" + (command != null ? command.getSimpleName() : pkt.cmd) + " flags=" + pkt.flags +
+                " errorCode=" + errorCodeToString(pkt.errorCode));
         if (pkt.errorCode == 0) {
             switch (pkt.cmdSet) {
                 case JDWPVirtualMachine.VirtualMachine.COMMAND_SET:
@@ -148,6 +151,127 @@ public class JDWPLogger implements Closeable {
                     dumpEvent(pkt);
                     break;
             }
+        }
+    }
+
+    private String errorCodeToString(short errorCode) {
+        switch (errorCode) {
+            case JDWP.Error.NONE:
+                return "NONE";
+            case JDWP.Error.INVALID_THREAD:
+                return "INVALID_THREAD";
+            case JDWP.Error.INVALID_THREAD_GROUP:
+                return "INVALID_THREAD_GROUP";
+            case JDWP.Error.INVALID_PRIORITY:
+                return "INVALID_PRIORITY";
+            case JDWP.Error.THREAD_NOT_SUSPENDED:
+                return "THREAD_NOT_SUSPENDED";
+            case JDWP.Error.THREAD_SUSPENDED:
+                return "THREAD_SUSPENDED";
+            case JDWP.Error.THREAD_NOT_ALIVE:
+                return "THREAD_THREAD_NOT_ALIVE";
+            case JDWP.Error.INVALID_OBJECT:
+                return "INVALID_OBJECT";
+            case JDWP.Error.INVALID_CLASS:
+                return "INVALID_CLASS";
+            case JDWP.Error.CLASS_NOT_PREPARED:
+                return "CLASS_NOT_PREPARED";
+            case JDWP.Error.INVALID_METHODID:
+                return "INVALID_METHODID";
+            case JDWP.Error.INVALID_LOCATION:
+                return "INVALID_LOCATION";
+            case JDWP.Error.INVALID_FIELDID:
+                return "INVALID_FIELDID";
+            case JDWP.Error.INVALID_FRAMEID:
+                return "INVALID_FRAMEID";
+            case JDWP.Error.NO_MORE_FRAMES:
+                return "NO_MORE_FRAMES";
+            case JDWP.Error.OPAQUE_FRAME:
+                return "OPAQUE_FRAME";
+            case JDWP.Error.NOT_CURRENT_FRAME:
+                return "NOT_CURRENT_FRAME";
+            case JDWP.Error.TYPE_MISMATCH:
+                return "TYPE_MISMATCH";
+            case JDWP.Error.INVALID_SLOT:
+                return "INVALID_SLOT";
+            case JDWP.Error.DUPLICATE:
+                return "DUPLICATE";
+            case JDWP.Error.NOT_FOUND:
+                return "NOT_FOUND";
+            case JDWP.Error.INVALID_MONITOR:
+                return "INVALID_MONITOR";
+            case JDWP.Error.NOT_MONITOR_OWNER:
+                return "NOT_MONITOR_OWNER";
+            case JDWP.Error.INTERRUPT:
+                return "INTERRUPT";
+            case JDWP.Error.INVALID_CLASS_FORMAT:
+                return "INVALID_CLASS_FORMAT";
+            case JDWP.Error.CIRCULAR_CLASS_DEFINITION:
+                return "CIRCULAR_CLASS_DEFINITION";
+            case JDWP.Error.FAILS_VERIFICATION:
+                return "FAILS_VERIFICATION";
+            case JDWP.Error.ADD_METHOD_NOT_IMPLEMENTED:
+                return "ADD_METHOD_NOT_IMPLEMENTED";
+            case JDWP.Error.SCHEMA_CHANGE_NOT_IMPLEMENTED:
+                return "SCHEMA_CHANGE_NOT_IMPLEMENTED";
+            case JDWP.Error.INVALID_TYPESTATE:
+                return "INVALID_TYPESTATE";
+            case JDWP.Error.HIERARCHY_CHANGE_NOT_IMPLEMENTED:
+                return "HIERARCHY_CHANGE_NOT_IMPLEMENTED";
+            case JDWP.Error.DELETE_METHOD_NOT_IMPLEMENTED:
+                return "DELETE_METHOD_NOT_IMPLEMENTED";
+            case JDWP.Error.UNSUPPORTED_VERSION:
+                return "UNSUPPORTED_VERSION";
+            case JDWP.Error.NAMES_DONT_MATCH:
+                return "NAMES_DONT_MATCH";
+            case JDWP.Error.CLASS_MODIFIERS_CHANGE_NOT_IMPLEMENTED:
+                return "CLASS_MODIFIERS_CHANGE_NOT_IMPLEMENTED";
+            case JDWP.Error.METHOD_MODIFIERS_CHANGE_NOT_IMPLEMENTED:
+                return "METHOD_MODIFIERS_CHANGE_NOT_IMPLEMENTED";
+            case JDWP.Error.NOT_IMPLEMENTED:
+                return "NOT_IMPLEMENTED";
+            case JDWP.Error.NULL_POINTER:
+                return "NULL_POINTER";
+            case JDWP.Error.ABSENT_INFORMATION:
+                return "ABSENT_INFORMATION";
+            case JDWP.Error.INVALID_EVENT_TYPE:
+                return "INVALID_EVENT_TYPE";
+            case JDWP.Error.ILLEGAL_ARGUMENT:
+                return "ILLEGAL_ARGUMENT";
+            case JDWP.Error.OUT_OF_MEMORY:
+                return "OUT_OF_MEMORY";
+            case JDWP.Error.ACCESS_DENIED:
+                return "ACCESS_DENIED";
+            case JDWP.Error.VM_DEAD:
+                return "VM_DEAD";
+            case JDWP.Error.INTERNAL:
+                return "INTERNAL";
+            case JDWP.Error.UNATTACHED_THREAD:
+                return "UNATTACHED_THREAD";
+            case JDWP.Error.INVALID_TAG:
+                return "INVALID_TAG";
+            case JDWP.Error.ALREADY_INVOKING:
+                return "ALREADY_INVOKING";
+            case JDWP.Error.INVALID_INDEX:
+                return "INVALID_INDEX";
+            case JDWP.Error.INVALID_LENGTH:
+                return "INVALID_LENGTH";
+            case JDWP.Error.INVALID_STRING:
+                return "INVALID_STRING";
+            case JDWP.Error.INVALID_CLASS_LOADER:
+                return "INVALID_CLASS_LOADER";
+            case JDWP.Error.INVALID_ARRAY:
+                return "INVALID_ARRAY";
+            case JDWP.Error.TRANSPORT_LOAD:
+                return "TRANSPORT_LOAD";
+            case JDWP.Error.TRANSPORT_INIT:
+                return "TRANSPORT_INIT";
+            case JDWP.Error.NATIVE_METHOD:
+                return "NATIVE_METHOD";
+            case JDWP.Error.INVALID_COUNT:
+                return "INVALID_COUNT";
+            default:
+                return "invalid " + errorCode;
         }
     }
 
@@ -350,7 +474,7 @@ public class JDWPLogger implements Closeable {
             }
         } else if (pkt.cmd == JDWPEventRequest.EventRequest.Clear.COMMAND) {
             if (pkt.flags == Packet.NoFlags) {
-                consumer.accept("eventKind=" + pkt.readByte() + " requestID=" + pkt.readInt());
+                consumer.accept("eventKind=" + eventKindToString(pkt.readByte()) + " requestID=" + pkt.readInt());
             }
         }
     }
@@ -529,7 +653,7 @@ public class JDWPLogger implements Closeable {
             if (pkt.flags == Packet.NoFlags) {
                 consumer.accept("thread=" + pkt.readObjectRef());
             } else {
-                consumer.accept("threedName=" + pkt.readString());
+                consumer.accept("threadName=" + pkt.readString());
             }
         } else if (pkt.cmd == JDWPThreadReference.ThreadReference.Suspend.COMMAND && pkt.flags == Packet.NoFlags) {
             consumer.accept("thread=" + pkt.readObjectRef());
@@ -539,7 +663,8 @@ public class JDWPLogger implements Closeable {
             if (pkt.flags == Packet.NoFlags) {
                 consumer.accept("thread=" + pkt.readObjectRef());
             } else {
-                consumer.accept("threadStatus=" + pkt.readInt() + " suspendStatus=" + pkt.readInt());
+                consumer.accept("threadStatus=" + threadStatusToString(pkt.readInt()) +
+                        " suspendStatus=" + suspendStatusToString(pkt.readInt()));
             }
         } else if (pkt.cmd == JDWPThreadReference.ThreadReference.ThreadGroup.COMMAND) {
             if (pkt.flags == Packet.NoFlags) {
@@ -603,6 +728,32 @@ public class JDWPLogger implements Closeable {
         }
     }
 
+    private String suspendStatusToString(int suspendStatus) {
+        switch (suspendStatus) {
+            case JDWP.SuspendStatus.SUSPEND_STATUS_SUSPENDED:
+                return "suspended";
+            default:
+                return "invalid " + suspendStatus;
+        }
+    }
+
+    private String threadStatusToString(int threadStatus) {
+        switch (threadStatus) {
+            case JDWP.ThreadStatus.ZOMBIE:
+                return "zombie";
+            case JDWP.ThreadStatus.RUNNING:
+                return "running";
+            case JDWP.ThreadStatus.SLEEPING:
+                return "sleeping";
+            case JDWP.ThreadStatus.MONITOR:
+                return "monitor";
+            case JDWP.ThreadStatus.WAIT:
+                return "wait";
+            default:
+                return "invalid " + threadStatus;
+        }
+    }
+
     private static String locationToString(Packet pkt) {
         StringBuilder sb = new StringBuilder();
         sb.append(pkt.readByte()).append(" classID=").append(pkt.readObjectRef()).
@@ -619,7 +770,7 @@ public class JDWPLogger implements Closeable {
         } else if (val == JDWP.TypeTag.ARRAY) {
             return "array";
         }
-        return "invalid type tag " + val;
+        return "invalid " + val;
 
     }
 
@@ -629,10 +780,10 @@ public class JDWPLogger implements Closeable {
         String[] labels = new String[] {"verified", "prepared", "initialized", "error"};
         boolean first = true;
         for(int i = 0; i < values.length;++i) {
-            if (!first) {
-                builder.append(',');
-            }
             if ((status & values[i]) == values[i]) {
+                if (!first) {
+                    builder.append(',');
+                }
                 builder.append(labels[i]);
                 first = false;
             }
@@ -690,7 +841,7 @@ public class JDWPLogger implements Closeable {
                 for(int i=0; i < arguments;++i) {
                     consumer.accept("arg" + i + "=" + valueToString(pkt));
                 }
-                consumer.accept("options=" + pkt.readInt());
+                consumer.accept("options=" + invokeOptionsToString(pkt.readInt()));
             } else {
                 consumer.accept("returnValue=" + valueToString(pkt) + " exception=" + pkt.readByte() + pkt.readObjectRef());
             }
@@ -714,6 +865,23 @@ public class JDWPLogger implements Closeable {
                 }
             }
         }
+    }
+
+    private String invokeOptionsToString(int options) {
+        StringBuilder builder = new StringBuilder();
+        int[] values = new int[] {JDWP.InvokeOptions.INVOKE_SINGLE_THREADED, JDWP.InvokeOptions.INVOKE_NONVIRTUAL};
+        String[] labels = new String[] {"single threaded", "non virtual"};
+        boolean first = true;
+        for(int i = 0; i < values.length;++i) {
+            if ((options & values[i]) == values[i]) {
+                if (!first) {
+                    builder.append(',');
+                }
+                builder.append(labels[i]);
+                first = false;
+            }
+        }
+        return builder.toString();
     }
 
     private void dumpField(Packet pkt) {
@@ -778,7 +946,7 @@ public class JDWPLogger implements Closeable {
                 for(int i=0; i < arguments;++i) {
                     consumer.accept("arg" + i + "=" + valueToString(pkt));
                 }
-                consumer.accept("options=" + pkt.readInt());
+                consumer.accept("options=" + invokeOptionsToString(pkt.readInt()));
             } else {
                 consumer.accept("returnValue=" + valueToString(pkt) + " exception=" + pkt.readByte() + pkt.readObjectRef());
             }
@@ -814,7 +982,7 @@ public class JDWPLogger implements Closeable {
                 for(int i=0; i < arguments;++i) {
                     consumer.accept("arg" + i + "=" + valueToString(pkt));
                 }
-                consumer.accept("options=" + pkt.readInt());
+                consumer.accept("options=" + invokeOptionsToString(pkt.readInt()));
             } else {
                 consumer.accept("returnValue=" + valueToString(pkt) + " exception=" + pkt.readByte() + pkt.readObjectRef());
             }
@@ -826,7 +994,7 @@ public class JDWPLogger implements Closeable {
                 for(int i=0; i < arguments;++i) {
                     consumer.accept("arg" + i + "=" + valueToString(pkt));
                 }
-                consumer.accept("options=" + pkt.readInt());
+                consumer.accept("options=" + invokeOptionsToString(pkt.readInt()));
             } else {
                 consumer.accept("newObject=" + pkt.readByte() + pkt.readObjectRef() + " exception=" + pkt.readByte() + pkt.readObjectRef());
             }
@@ -850,7 +1018,7 @@ public class JDWPLogger implements Closeable {
             if (pkt.flags == Packet.NoFlags) {
                 consumer.accept("refType=" + pkt.readClassRef());
             } else {
-                consumer.accept("modBits=" + pkt.readInt());
+                consumer.accept("modBits=" + modbitsToString(pkt.readInt()));
             }
         } else if (pkt.cmd == JDWPReferenceType.ReferenceType.Fields.COMMAND) {
             if (pkt.flags == Packet.NoFlags) {
@@ -859,7 +1027,7 @@ public class JDWPLogger implements Closeable {
                 int declared = pkt.readInt();
                 for(int i=0; i < declared;++i) {
                     consumer.accept("fieldID=" + pkt.readFieldRef() + " name=" + pkt.readString() +
-                            " signature=" + pkt.readString() + " modBits=" + pkt.readInt());
+                            " signature=" + pkt.readString() + " modBits=" + modbitsToString(pkt.readInt()));
                 }
             }
         } else if (pkt.cmd == JDWPReferenceType.ReferenceType.Methods.COMMAND) {
@@ -869,7 +1037,7 @@ public class JDWPLogger implements Closeable {
                 int declared = pkt.readInt();
                 for(int i=0; i < declared;++i) {
                     consumer.accept("methodID=" + pkt.readMethodRef() + " name=" + pkt.readString() +
-                            " signature=" + pkt.readString() + " modBits=" + pkt.readInt());
+                            " signature=" + pkt.readString() + " modBits=" + modbitsToString(pkt.readInt()));
                 }
             }
         } else if (pkt.cmd == JDWPReferenceType.ReferenceType.GetValues.COMMAND) {
@@ -941,7 +1109,7 @@ public class JDWPLogger implements Closeable {
                 for(int i=0; i < declared;++i) {
                     consumer.accept("fieldID=" + pkt.readFieldRef() + " name=" + pkt.readString() +
                             " signature=" + pkt.readString() + " genericSignature=" + pkt.readString() +
-                            " modBits=" + pkt.readInt());
+                            " modBits=" + modbitsToString(pkt.readInt()));
                 }
             }
         } else if (pkt.cmd == JDWPReferenceType.ReferenceType.MethodsWithGeneric.COMMAND) {
@@ -952,7 +1120,7 @@ public class JDWPLogger implements Closeable {
                 for(int i=0; i < declared;++i) {
                     consumer.accept("methodID=" + pkt.readMethodRef() + " name=" + pkt.readString() +
                             " signature=" + pkt.readString() + " genericSignature=" + pkt.readString() +
-                            " modBits=" + pkt.readInt());
+                            " modBits=" + modbitsToString(pkt.readInt()));
                 }
             }
         } else if (pkt.cmd == JDWPReferenceType.ReferenceType.Instances.COMMAND) {
@@ -985,6 +1153,26 @@ public class JDWPLogger implements Closeable {
                 consumer.accept("module=" + pkt.readObjectRef());
             }
         }
+    }
+
+    private String modbitsToString(int modifier) {
+        StringBuilder builder = new StringBuilder();
+        int[] values = new int[] {Modifier.STATIC, Modifier.PUBLIC, Modifier.ABSTRACT, Modifier.FINAL,
+                Modifier.INTERFACE, Modifier.NATIVE, Modifier.PRIVATE, Modifier.PROTECTED, Modifier.STRICT,
+        Modifier.SYNCHRONIZED, Modifier.TRANSIENT, Modifier.VOLATILE};
+        String[] labels = new String[] {"static", "public", "abstract", "final", "interface", "native", "private",
+        "protected", "strict", "synchronized", "transient", "volatile"};
+        boolean first = true;
+        for(int i = 0; i < values.length;++i) {
+            if ((modifier & values[i]) == values[i]) {
+                if (!first) {
+                    builder.append(',');
+                }
+                builder.append(labels[i]);
+                first = false;
+            }
+        }
+        return builder.toString();
     }
 
     private static String valueToString(Packet pkt) {
