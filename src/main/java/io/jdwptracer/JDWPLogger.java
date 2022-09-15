@@ -756,7 +756,15 @@ public class JDWPLogger implements Closeable {
 
     private static String locationToString(Packet pkt) {
         StringBuilder sb = new StringBuilder();
-        sb.append(pkt.readByte()).append(" classID=").append(pkt.readObjectRef()).
+        var tag = pkt.readByte();
+        if (tag == JDWP.TypeTag.CLASS) {
+            sb.append("class");
+        } else if (tag == JDWP.TypeTag.INTERFACE) {
+            sb.append("interface");
+        } else if (tag == JDWP.TypeTag.ARRAY) {
+            sb.append("array");
+        }
+        sb.append(" classID=").append(pkt.readObjectRef()).
                 append(" methodID=").append(pkt.readObjectRef()).
                 append(" index=").append(pkt.readLong());
         return sb.toString();
