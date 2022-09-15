@@ -27,10 +27,17 @@ public class JDWPTracer {
     private static void copy(Connection inConnection, Connection outConnection, PacketProcessor logger) {
         try {
             while (inConnection.isOpen()) {
-                byte[] pkt = inConnection.readPacket();
-                logger.process(pkt);
-                outConnection.writePacket(pkt);
+                try {
+                    byte[] pkt = inConnection.readPacket();
+                    if (pkt.length > 0) {
+                        logger.process(pkt);
+                        outConnection.writePacket(pkt);
+                    } else {
+                        inConnection.close();
+                    }
+                } catch (Exception e) {}
             }
+            outConnection.close();
         } catch (IOException e) {}
     }
 }
