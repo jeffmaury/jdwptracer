@@ -390,21 +390,24 @@ public class JDWPLogger implements Closeable {
     private void dumpStackFrame(Packet pkt) {
         if (pkt.cmd == JDWPStackFrame.StackFrame.GetValues.COMMAND) {
             if (pkt.flags == Packet.NoFlags) {
-                consumer.accept("thread=" + pkt.readObjectRef() + " frame=" + pkt.readObjectRef());
                 int slots = pkt.readInt();
+                consumer.accept("thread=" + pkt.readObjectRef() + " frame=" + pkt.readObjectRef() +
+                        " slots=" + slots);
                 for(int i=0; i < slots;++i) {
                     consumer.accept("slot=" + pkt.readInt() + " sigByte=" + pkt.readByte());
                 }
             } else {
                 int values = pkt.readInt();
+                consumer.accept("values=" + values);
                 for(int i=0; i < values;++i) {
                     consumer.accept("slotValue=" + valueToString(pkt));
                 }
             }
         } else if (pkt.cmd == JDWPStackFrame.StackFrame.SetValues.COMMAND) {
             if (pkt.flags == Packet.NoFlags) {
-                consumer.accept("thread=" + pkt.readObjectRef() + " frame=" + pkt.readObjectRef());
                 int slotsValues = pkt.readInt();
+                consumer.accept("thread=" + pkt.readObjectRef() + " frame=" + pkt.readObjectRef() +
+                        " slotsValues=" + slotsValues);
                 for(int i=0; i < slotsValues;++i) {
                     consumer.accept("slot=" + pkt.readInt() + " slotValue=" + valueToString(pkt));
                 }
