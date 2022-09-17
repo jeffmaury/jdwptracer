@@ -1191,53 +1191,53 @@ public class JDWPLogger implements Closeable {
         byte tag = pkt.readByte();
         switch (tag) {
             case JDWP.Tag.ARRAY:
-                sb.append('[');
-                sb.append(pkt.readObjectRef()).append(']');
+                sb.append("[");
+                sb.append(pkt.readObjectRef()).append("](array)");
                 break;
             case JDWP.Tag.BYTE:
-                sb.append('B').append(pkt.readByte());
+                sb.append(pkt.readByte()).append("(byte)");
                 break;
             case JDWP.Tag.CHAR:
-                sb.append('C').append(pkt.readChar());
+                sb.append(pkt.readChar()).append("(char)");
                 break;
             case JDWP.Tag.OBJECT:
-                sb.append('L').append(pkt.readObjectRef());
+                sb.append(pkt.readObjectRef()).append("(object)");
                 break;
             case JDWP.Tag.FLOAT:
-                sb.append('F').append(pkt.readFloat());
+                sb.append(pkt.readFloat()).append("(float)");
                 break;
             case JDWP.Tag.DOUBLE:
-                sb.append('D').append(pkt.readDouble());
+                sb.append(pkt.readDouble()).append("(double)");
                 break;
             case JDWP.Tag.INT:
-                sb.append('I').append(pkt.readInt());
+                sb.append(pkt.readInt()).append("(int)");
                 break;
             case JDWP.Tag.LONG:
-                sb.append('J').append(pkt.readLong());
+                sb.append(pkt.readLong()).append("(long)");
                 break;
             case JDWP.Tag.SHORT:
-                sb.append('S').append(pkt.readShort());
+                sb.append(pkt.readShort()).append("(short)");
                 break;
             case JDWP.Tag.VOID:
-                sb.append('V');
+                sb.append("void");
                 break;
             case JDWP.Tag.BOOLEAN:
-                sb.append('Z').append(pkt.readBoolean());
+                sb.append(pkt.readBoolean()).append("(boolean)");
                 break;
             case JDWP.Tag.STRING:
-                sb.append('s').append(pkt.readObjectRef());
+                sb.append(pkt.readObjectRef()).append("(string)");
                 break;
             case JDWP.Tag.THREAD:
-                sb.append('t').append(pkt.readObjectRef());
+                sb.append(pkt.readObjectRef()).append("(thread)");
                 break;
             case JDWP.Tag.THREAD_GROUP:
-                sb.append('g').append(pkt.readObjectRef());
+                sb.append(pkt.readObjectRef()).append("(thread group)");
                 break;
             case JDWP.Tag.CLASS_LOADER:
-                sb.append('l').append(pkt.readObjectRef());
+                sb.append(pkt.readObjectRef()).append("(class loader)");
                 break;
             case JDWP.Tag.CLASS_OBJECT:
-                sb.append('c').append(pkt.readObjectRef());
+                sb.append(pkt.readObjectRef()).append("(class)");
                 break;
         }
         return sb.toString();
