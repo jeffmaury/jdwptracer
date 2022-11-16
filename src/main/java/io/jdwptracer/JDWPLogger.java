@@ -416,7 +416,7 @@ public class JDWPLogger implements Closeable {
             if (pkt.flags == Packet.NoFlags) {
                 consumer.accept("thread=" + pkt.readObjectRef() + " frame=" + pkt.readObjectRef());
             } else {
-                consumer.accept("objectThis=" + pkt.readByte() + pkt.readObjectRef());
+                consumer.accept("objectThis=" + valueToString(pkt));
             }
         } else if (pkt.cmd == JDWPStackFrame.StackFrame.PopFrames.COMMAND) {
             if (pkt.flags == Packet.NoFlags) {
@@ -613,6 +613,22 @@ public class JDWPLogger implements Closeable {
             if (pkt.flags == Packet.NoFlags) {
                 consumer.accept("arrayObject=" + pkt.readObjectRef() + " firstIndex=" + pkt.readInt() +
                         " length=" + pkt.readInt());
+            } else {
+                byte type = pkt.readByte();
+                int size = pkt.readInt();
+                consumer.accept("type=" + tagToString(type) + " size=" + size);
+                for(int i=0; i < size;++i) {
+                    String value;
+                    if (type == JDWP.Tag.ARRAY || type == JDWP.Tag.OBJECT || type == JDWP.Tag.STRING ||
+                            type == JDWP.Tag.THREAD || type == JDWP.Tag.THREAD_GROUP || type == JDWP.Tag.CLASS_LOADER ||
+                            type == JDWP.Tag.CLASS_OBJECT) {
+                        value = valueToString(pkt);
+                    } else {
+                        value = valueToString(pkt, type);
+                    }
+                    consumer.accept("value" + i + "=" + value);
+                }
+
             }
         } else if (pkt.cmd == JDWPArrayReference.ArrayReference.SetValues.COMMAND) {
             if (pkt.flags == Packet.NoFlags) {
@@ -780,6 +796,45 @@ public class JDWPLogger implements Closeable {
             return "interface";
         } else if (val == JDWP.TypeTag.ARRAY) {
             return "array";
+        }
+        return "invalid " + val;
+
+    }
+
+    private static String tagToString(byte val) {
+        switch (val) {
+            case JDWP.Tag.ARRAY:
+                return "array";
+            case JDWP.Tag.BYTE:
+                return "byte";
+            case JDWP.Tag.CHAR:
+                return "char";
+            case JDWP.Tag.OBJECT:
+                return "object";
+            case JDWP.Tag.FLOAT:
+                return "float";
+            case JDWP.Tag.DOUBLE:
+                return "double";
+            case JDWP.Tag.INT:
+                return "int";
+            case JDWP.Tag.LONG:
+                return "long";
+            case JDWP.Tag.SHORT:
+                return "short";
+            case JDWP.Tag.VOID:
+                return "void";
+            case JDWP.Tag.BOOLEAN:
+                return "boolean";
+            case JDWP.Tag.STRING:
+                return "string";
+            case JDWP.Tag.THREAD:
+                return "thread";
+            case JDWP.Tag.THREAD_GROUP:
+                return "threadGroup";
+            case JDWP.Tag.CLASS_LOADER:
+                return "classLoader";
+            case JDWP.Tag.CLASS_OBJECT:
+                return "class";
         }
         return "invalid " + val;
 
@@ -1186,9 +1241,9 @@ public class JDWPLogger implements Closeable {
         return builder.toString();
     }
 
-    private static String valueToString(Packet pkt) {
+    private static String valueToString(Packet pkt, Byte type) {
         StringBuilder sb = new StringBuilder();
-        byte tag = pkt.readByte();
+        byte tag = type==null?pkt.readByte():type;
         switch (tag) {
             case JDWP.Tag.ARRAY:
                 sb.append("[");
@@ -1241,6 +1296,10 @@ public class JDWPLogger implements Closeable {
                 break;
         }
         return sb.toString();
+    }
+
+    private static String valueToString(Packet pkt) {
+        return valueToString(pkt, null);
     }
 
     private void dumpVirtualMachine(Packet pkt) {
