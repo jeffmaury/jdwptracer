@@ -390,9 +390,9 @@ public class JDWPLogger implements Closeable {
     private void dumpStackFrame(Packet pkt) {
         if (pkt.cmd == JDWPStackFrame.StackFrame.GetValues.COMMAND) {
             if (pkt.flags == Packet.NoFlags) {
-                int slots = pkt.readInt();
+                int slots;
                 consumer.accept("thread=" + pkt.readObjectRef() + " frame=" + pkt.readObjectRef() +
-                        " slots=" + slots);
+                        " slots=" + (slots = pkt.readInt()));
                 for(int i=0; i < slots;++i) {
                     consumer.accept("slot=" + pkt.readInt() + " sigByte=" + pkt.readByte());
                 }
@@ -992,8 +992,9 @@ public class JDWPLogger implements Closeable {
             if (pkt.flags == Packet.NoFlags) {
                 consumer.accept("refType=" + pkt.readClassRef() + " methodID=" + pkt.readMethodRef());
             } else {
-                consumer.accept("argCnt=" + pkt.readInt());
+                int argCnt = pkt.readInt();
                 int slots = pkt.readInt();
+                consumer.accept("argCnt=" + argCnt + " slots=" + slots);
                 for (int i = 0; i < slots; ++i) {
                     consumer.accept("codeIndex=" + pkt.readLong() + " name=" + pkt.readString() +
                             " signature=" + pkt.readString() + " genericSignature=" + pkt.readString() +
