@@ -876,13 +876,14 @@ public class JDWPLogger implements Closeable {
             }
         } else if (pkt.cmd == JDWPObjectReference.ObjectReference.GetValues.COMMAND) {
             if (pkt.flags == Packet.NoFlags) {
-                consumer.accept("object=" + pkt.readObjectRef());
-                int fields = pkt.readInt();
+                int fields;
+                consumer.accept("object=" + pkt.readObjectRef() + " fields=" + (fields = pkt.readInt()));
                 for(int i=0; i < fields;++i) {
                     consumer.accept("fieldID=" + pkt.readFieldRef());
                 }
             } else {
                 int values = pkt.readInt();
+                consumer.accept("values=" + values);
                 for(int i=0; i < values;++i) {
                     consumer.accept("value" + i + "=" + valueToString(pkt));
                 }
